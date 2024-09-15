@@ -1,7 +1,15 @@
-<h2>Your Profile</h2>
-<form method="post">
-    {% csrf_token %}
-    <label for="email">Email:</label>
-    <input type="email" name="email" value="{{ user.email }}">
-    <button type="submit">Update Profile</button>
-</form>
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>My Profile</h1>
+
+<p>Username: {{ user.username }}</p>
+<p>Email: {{ user.email }}</p>
+
+{% if user.profile.bio %}
+    <p>Bio:</p>
+    <p>{{ user.profile.bio }}</p>
+{% endif %}
+
+<a href="{% url 'edit_profile' %}">Edit Profile</a>
+{% endblock content %}
