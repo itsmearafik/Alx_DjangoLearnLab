@@ -1,41 +1,40 @@
 from django import forms
+from django.contrib.auth.models import User
+from django.contrib.auth.forms import UserCreationForm
+from django import forms
+from django.contrib.auth.models import User
+from django import forms
+from .models import Comment
 from taggit.forms import TagWidget
-from taggit.utils import slugify
-from .models import Profile, Post, Comment, Tag
 
-
-class ProfileForm(forms.ModelForm):
-    class Meta:
-        model = Profile
-        fields = ('email', 'bio', 'picture')
-
-class CreatePostForm(forms.ModelForm):
-    tags = forms.CharField(required=False, widget=TagWidget())
-
+class PostForm(forms.ModelForm):
     class Meta:
         model = Post
-        fields = ('title', 'content')
+        fields = ['title', 'content', 'tags']
         widgets = {
-            'tags': TagWidget
-        }
-
-    def clean_tags(self):
-        tags = self.cleaned_data['tags']
-        existing_tags = Tag.objects.filter(name__in=[slugify(tags) for tag in tags.split(',')])
-        new_tags = [tag for tag in tags.split(',') if slugify(tag) not in existing_tags.values_list('name', flat=True)]
-        return ', '.join(existing_tags.values_list('name', flat=True) + new_tags)
-
-class UpdatePostForm(forms.ModelForm):
-    class Meta:
-        model = Post
-        fields = ('title', 'content')
-        widgets = {
-            'title':forms.TextInput(attrs={'class':'form-control'}),
-            'content': forms.Textarea(attrs={'class': 'form-control'})
-
+            'tags': TagWidget()
         }
 
 class CommentForm(forms.ModelForm):
     class Meta:
         model = Comment
-        fields = ('content',)
+        fields = ['content']  # Ensure 'content' is included as the only field
+
+    def clean_content(self):
+        content = self.cleaned_data.get('content')
+        if not content:
+            raise forms.ValidationError('Content cannot be empty.')
+        return content
+
+class ProfileUpdateForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ['username', 'email']  # Add any other fields you want to allow updates for
+
+
+class CustomUserCreationForm(UserCreationForm):
+    email = forms.EmailField(required=True)
+
+    class Meta:
+        model = User
+        fields = ['username', 'email', 'password1', 'password2']
